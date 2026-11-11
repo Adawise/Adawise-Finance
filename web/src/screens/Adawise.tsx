@@ -1,0 +1,382 @@
+import { useState, type ComponentType, type ReactNode } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useToast } from '../components/ui'
+import {
+  BadgeIcon,
+  BellIcon,
+  ChevronRight,
+  ClockIcon,
+  DropletIcon,
+  EyeIcon,
+  EyeOffIcon,
+  FlagIcon,
+  LifebuoyIcon,
+  LockIcon,
+  PlusIcon,
+  UsersIcon,
+  VaultIcon,
+  WalletIcon,
+} from '../components/icons'
+import {
+  CIRCLES,
+  FIXED_DEPOSITS,
+  GOALS,
+  GOAL_TYPE_LABEL,
+  INTEREST_EARNED,
+  PARTNER_REQUESTS,
+  SAVE_ME,
+  WISE_BADGES,
+  circleProgress,
+  ghs,
+  shortDate,
+  totals,
+  type Goal,
+} from '../lib/demoData'
+import { useThemeColor } from '../lib/useThemeColor'
+
+const ADA_DARK = '#0F3D3E'
+
+type Icon = ComponentType<{ size?: number }>
+const COMING_NEXT = 'Coming next in the demo'
+const NOTIFICATIONS = 2
+
+function CloseIcon() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+      <path d="M5 5l14 14M19 5 5 19" />
+    </svg>
+  )
+}
+
+/** Adawise home inside MoMo: wallet → quick actions → highlights → contributions → goals → circles */
+export function Adawise() {
+  useThemeColor(ADA_DARK)
+  const navigate = useNavigate()
+  const [toast, toastNode] = useToast()
+  const [hidden, setHidden] = useState(false)
+  const { total, locked, available } = totals()
+  const money = (n: number) => (hidden ? 'GHS ****' : ghs(n))
+
+  return (
+    <div className="font-ada relative flex h-full flex-col bg-[#f4f6f7]">
+      <main className="min-h-0 flex-1 overflow-y-auto pb-[calc(32px+env(safe-area-inset-bottom))]">
+        {/* ---- Header + wallet, laid out like the MoMo home but in Adawise teal ---- */}
+        <section className="relative">
+          <div
+            className="ada-card-gradient absolute inset-x-0 top-0 h-[calc(232px+env(safe-area-inset-top))]"
+            style={{ borderBottomLeftRadius: '50% 22px', borderBottomRightRadius: '50% 22px' }}
+          />
+
+          <div className="relative flex items-center justify-between px-[14px] pt-[calc(env(safe-area-inset-top)+10px)]">
+            <button
+              type="button"
+              aria-label="Close Adawise"
+              onClick={() => navigate('/home', { replace: true })}
+              className="grid size-11 place-items-center text-white active:opacity-60"
+            >
+              <CloseIcon />
+            </button>
+            <h1 className="text-[20px] font-bold tracking-[0.02em] text-white">Adawise</h1>
+            <button
+              type="button"
+              aria-label="Notifications"
+              onClick={() => toast(COMING_NEXT)}
+              className="relative grid size-11 place-items-center text-white active:opacity-60"
+            >
+              <BellIcon size={28} />
+              <span className="absolute right-[4px] top-[4px] grid h-[18px] min-w-[18px] place-items-center rounded-full bg-white px-1 text-[10px] font-bold text-ink">
+                {NOTIFICATIONS}
+              </span>
+            </button>
+          </div>
+
+          {/* Wallet card (white, like the MoMo wallet) */}
+          <div className="relative mx-4 mt-[22px] overflow-hidden rounded-[14px] bg-white shadow-[0_6px_20px_rgba(8,36,38,0.14)]">
+            <span className="absolute left-0 top-0 flex items-center gap-1 rounded-br-[8px] bg-ada px-2 py-[3px] text-[11px] font-semibold text-white">
+              <WalletIcon size={12} /> Wallet
+            </span>
+            <button
+              type="button"
+              aria-label={hidden ? 'Show amounts' : 'Hide amounts'}
+              onClick={() => setHidden((h) => !h)}
+              className="absolute right-[14px] top-[42px] text-ada-dark active:opacity-60"
+            >
+              {hidden ? <EyeIcon size={28} /> : <EyeOffIcon size={28} />}
+            </button>
+
+            <div className="px-4 pb-[14px] pt-[30px] text-center">
+              <p className="text-[13px] text-muted">Total savings</p>
+              <p className="mt-[2px] text-[27px] font-bold text-ada-dark">{money(total)}</p>
+            </div>
+            <div className="grid grid-cols-2 border-t border-[#e6e6e6] py-[12px]">
+              <div className="text-center">
+                <p className="text-[12.5px] text-muted">Locked</p>
+                <p className="mt-[2px] text-[16px] font-bold text-ada-dark">{money(locked)}</p>
+              </div>
+              <div className="border-l-[1.5px] border-ada/50 text-center">
+                <p className="text-[12.5px] text-muted">Available</p>
+                <p className="mt-[2px] text-[16px] font-bold text-ada">{money(available)}</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ---- Quick actions ---- */}
+        <section className="grid grid-cols-2 gap-3 px-4 pt-4">
+          <QuickAction icon={FlagIcon} title="Create goal" subtitle="Save on your own" onClick={() => toast(COMING_NEXT)} />
+          <QuickAction icon={UsersIcon} title="Create circle" subtitle="Save with others" onClick={() => toast(COMING_NEXT)} />
+        </section>
+
+        {/* ---- Highlights (swipe) ---- */}
+        <section className="mt-5 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
+          <Highlight
+            icon={LifebuoyIcon}
+            image="save-me"
+            label="Save Me left"
+            value={`${SAVE_ME.allowed - SAVE_ME.used} of ${SAVE_ME.allowed}`}
+            note="Resets 1 Jan"
+            tone="from-[#0f3d3e] to-[#14b39f]"
+          />
+          <Highlight
+            icon={VaultIcon}
+            image="fixed-deposits"
+            label="Fixed deposits"
+            value={hidden ? 'GHS ****' : ghs(FIXED_DEPOSITS, 0)}
+            note={`Interest earned ${ghs(INTEREST_EARNED, 0)}`}
+            tone="from-[#082426] to-[#0f5a55]"
+          />
+          <Highlight icon={BadgeIcon} image="badges" label="WiseBadges" value={String(WISE_BADGES)} note="Stay steady" tone="from-[#0f3d3e] to-[#2bbfa9]" />
+          <Highlight icon={UsersIcon} image="circles" label="Active circles" value={String(CIRCLES.length)} note="Growing" tone="from-[#0b2f31] to-[#1a7f72]" />
+        </section>
+
+        {/* ---- Next contributions ---- */}
+        <SectionHeader title="Next contributions" onMore={() => toast(COMING_NEXT)} />
+        {/* Compact list: one row per upcoming payment */}
+        <section className="mx-4 divide-y divide-[#eef0f1] overflow-hidden rounded-[16px] bg-white shadow-[0_2px_12px_rgba(0,0,0,0.06)]">
+          {GOALS.filter((g) => g.nextContribution).map((g) => (
+            <div key={g.id} className="flex items-center gap-3 px-[14px] py-[12px]">
+              <span className="grid size-[40px] shrink-0 place-items-center rounded-[12px] bg-ada-soft text-ada">
+                <FlagIcon size={20} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[15px] font-bold text-ada-dark">{g.name}</p>
+                <p className="truncate text-[12.5px] text-muted">
+                  Due {shortDate(g.nextContribution!.due)} · {g.partner?.role === 'saver' ? 'Circle' : 'Personal'}
+                </p>
+              </div>
+              <p className="shrink-0 text-[15px] font-bold text-ink">{money(g.nextContribution!.amount)}</p>
+              <button
+                type="button"
+                onClick={() => toast(COMING_NEXT)}
+                className="h-[34px] shrink-0 rounded-full bg-ada px-[14px] text-[13px] font-bold text-white active:brightness-110"
+              >
+                Pay
+              </button>
+            </div>
+          ))}
+        </section>
+
+        {/* ---- My goals ---- */}
+        <SectionHeader title="My goals" onMore={() => toast(COMING_NEXT)} />
+        <section className="flex flex-col gap-3 px-4">
+          {GOALS.map((g) => (
+            <GoalCard key={g.id} goal={g} money={money} onClick={() => toast(COMING_NEXT)} />
+          ))}
+
+          <button
+            type="button"
+            onClick={() => toast(COMING_NEXT)}
+            className="flex items-center justify-between rounded-[16px] bg-white px-4 py-[14px] shadow-[0_2px_12px_rgba(0,0,0,0.06)]"
+          >
+            <span className="flex items-center gap-3 text-[15px] font-semibold text-ada-dark">
+              <span className="text-ada-dark">
+                <UsersIcon size={22} />
+              </span>
+              Partner requests
+            </span>
+            <span className="flex items-center gap-2">
+              <span className="rounded-full bg-ada-soft px-2 py-[2px] text-[12px] font-semibold text-ada">{PARTNER_REQUESTS} new</span>
+              <span className="text-dot">
+                <ChevronRight size={18} />
+              </span>
+            </span>
+          </button>
+        </section>
+
+        {/* ---- My circles ---- */}
+        <SectionHeader title="My circles" onMore={() => toast(COMING_NEXT)} />
+        <section className="flex flex-col gap-3 px-4">
+          {CIRCLES.map((c) => {
+            const pct = circleProgress(c)
+            return (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => toast(COMING_NEXT)}
+                className="rounded-[16px] bg-white p-4 text-left shadow-[0_2px_12px_rgba(0,0,0,0.06)]"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[16px] font-bold text-ada-dark">{c.name}</span>
+                  <span className="text-[13px] text-muted">{c.members.length} members</span>
+                </div>
+                <Progress value={pct} />
+                <div className="flex items-center justify-between">
+                  <div className="flex -space-x-[6px]">
+                    {c.members.slice(0, 4).map((m) => (
+                      <Avatar key={m.name} initials={m.initials} ring />
+                    ))}
+                    {c.members.length > 4 && (
+                      <span className="grid size-[28px] place-items-center rounded-full bg-[#e9e9e9] text-[11px] font-bold text-muted ring-2 ring-white">
+                        +{c.members.length - 4}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[13px] text-muted">Group progress {pct}%</span>
+                </div>
+              </button>
+            )
+          })}
+        </section>
+      </main>
+      {toastNode}
+    </div>
+  )
+}
+
+/* ---------- pieces ---------- */
+
+function QuickAction({ icon: I, title, subtitle, onClick }: { icon: Icon; title: string; subtitle: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex items-center gap-3 rounded-[16px] bg-white p-3 text-left shadow-[0_2px_12px_rgba(0,0,0,0.07)] transition active:scale-[0.98]"
+    >
+      <span className="relative grid size-[44px] shrink-0 place-items-center rounded-[12px] bg-ada-soft text-ada">
+        <I size={24} />
+        <span className="absolute -bottom-1 -right-1 grid size-[18px] place-items-center rounded-full bg-ada text-white ring-2 ring-white">
+          <PlusIcon size={12} />
+        </span>
+      </span>
+      <span className="min-w-0">
+        <span className="block text-[15px] font-bold text-ada-dark">{title}</span>
+        <span className="block truncate text-[12px] text-muted">{subtitle}</span>
+      </span>
+    </button>
+  )
+}
+
+/**
+ * Swipeable stat card. Drop a photo at /public/adawise/highlights/<image>.jpg and it
+ * shows behind a dark overlay (like the Adawise app); until then the gradient is used.
+ */
+function Highlight({
+  icon: I,
+  image,
+  label,
+  value,
+  note,
+  tone,
+}: {
+  icon: Icon
+  image: string
+  label: string
+  value: string
+  note: string
+  tone: string
+}) {
+  const [photo, setPhoto] = useState(false)
+  return (
+    <div className={`relative w-[62%] shrink-0 snap-start overflow-hidden rounded-[18px] bg-gradient-to-br ${tone} p-4 text-white`}>
+      <img
+        src={`/adawise/highlights/${image}.jpg`}
+        alt=""
+        onLoad={() => setPhoto(true)}
+        className={`absolute inset-0 h-full w-full object-cover ${photo ? '' : 'hidden'}`}
+      />
+      {photo ? (
+        <span className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/35 to-black/10" />
+      ) : (
+        <span className="absolute -right-3 -top-3 opacity-15">
+          <I size={86} />
+        </span>
+      )}
+      <p className="relative text-[14px] font-semibold text-white/90 [text-shadow:0_1px_4px_rgba(0,0,0,0.4)]">{label}</p>
+      <p className="relative mt-1 text-[28px] font-bold leading-tight [text-shadow:0_1px_6px_rgba(0,0,0,0.4)]">{value}</p>
+      <p className="relative mt-1 text-[13px] text-white/85">{note}</p>
+    </div>
+  )
+}
+
+function SectionHeader({ title, onMore }: { title: string; onMore: () => void }) {
+  return (
+    <div className="mt-6 flex items-center justify-between px-4 pb-3">
+      <h2 className="text-[19px] font-bold text-ink">{title}</h2>
+      <button type="button" aria-label={`See all ${title}`} onClick={onMore} className="text-ink active:opacity-60">
+        <ChevronRight size={22} />
+      </button>
+    </div>
+  )
+}
+
+function Progress({ value }: { value: number }) {
+  return (
+    <div className="my-[10px] h-[7px] overflow-hidden rounded-full bg-[#e6ebec]">
+      <div className="h-full rounded-full bg-ada" style={{ width: `${Math.min(100, value)}%` }} />
+    </div>
+  )
+}
+
+function Avatar({ initials, ring }: { initials: string; ring?: boolean }) {
+  return (
+    <span
+      className={`grid size-[30px] shrink-0 place-items-center rounded-full bg-ada-soft text-[10.5px] font-bold tracking-normal text-ada-dark ${ring ? 'ring-2 ring-white' : ''}`}
+    >
+      {initials}
+    </span>
+  )
+}
+
+const TYPE_ICON: Record<Goal['type'], Icon> = {
+  'goal-locked': LockIcon,
+  'time-locked': ClockIcon,
+  flexible: DropletIcon,
+}
+
+function GoalCard({ goal: g, money, onClick }: { goal: Goal; money: (n: number) => string; onClick: () => void }) {
+  const I = TYPE_ICON[g.type]
+  const pct = Math.round((g.saved / g.target) * 100)
+  const unlock: ReactNode =
+    g.type === 'goal-locked'
+      ? `Unlocks at ${ghs(g.target, 0)}`
+      : g.type === 'time-locked'
+        ? `Unlocks ${shortDate(g.unlockDate!)}`
+        : 'Withdraw anytime'
+
+  return (
+    <button type="button" onClick={onClick} className="rounded-[16px] bg-white p-4 text-left shadow-[0_2px_12px_rgba(0,0,0,0.06)]">
+      <div className="flex items-center justify-between">
+        <span className="flex items-center gap-2 text-[16px] font-bold text-ada-dark">
+          <I size={20} /> {g.name}
+        </span>
+        <span className="rounded-full bg-[#eef2f4] px-2 py-[2px] text-[12px] font-semibold text-muted">{GOAL_TYPE_LABEL[g.type]}</span>
+      </div>
+      <Progress value={pct} />
+      <div className="flex items-center justify-between text-[13px] text-muted">
+        <span>
+          <span className="font-semibold text-ink">{money(g.saved)}</span> / {ghs(g.target, 0)}
+        </span>
+        <span className="font-semibold text-ada">{pct}%</span>
+      </div>
+      <div className="mt-2 flex items-center justify-between text-[12.5px] text-muted">
+        <span>{unlock}</span>
+        {g.partner && (
+          <span className="flex items-center gap-[6px]">
+            <Avatar initials={g.partner.initials} />
+            {g.partner.role === 'saver' ? `Saving with ${g.partner.name}` : `Supported by ${g.partner.name}`}
+          </span>
+        )}
+      </div>
+    </button>
+  )
+}

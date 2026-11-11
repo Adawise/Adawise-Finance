@@ -1,0 +1,69 @@
+@import "tailwindcss";
+@import "@fontsource-variable/quicksand";
+@import "@fontsource-variable/inter";
+
+/* MoMo design tokens (eyeballed from screenshots — fine-tune with a colour picker) */
+@theme {
+  /* Stand-in for MTN Brighter Sans (proprietary): closest Google Font in a side-by-side test.
+     Put the real font first here once you have it. */
+  --font-sans: "Quicksand Variable", system-ui, sans-serif;
+  --color-navy: #00547b;
+  --color-navy-dark: #003a5c;
+  --color-yellow: #ffcb05;
+  --color-ink: #1a1a1a;
+  --color-muted: #5e5e5e;
+  --color-dot: #b5b5b5;
+  --color-disabled: #b0b0b0;
+  --color-surface: #f2f2f2;
+
+  /* Adawise accent, taken from the Adawise app (teal buttons, dark-teal wallet card) */
+  --color-ada: #14b39f;
+  --color-ada-dark: #0b2f31;
+  --color-ada-soft: #e3f6f3;
+
+  /* Adawise app font (looks like Inter in the app screenshots; swap if the team uses another) */
+  --font-ada: "Inter Variable", system-ui, sans-serif;
+}
+
+/* Inter is sturdier than Quicksand, so undo the MoMo body tweaks inside Adawise */
+.font-ada {
+  font-weight: 400;
+  letter-spacing: -0.005em;
+}
+
+.ada-card-gradient {
+  background:
+    radial-gradient(120% 80% at 100% 0%, rgba(20, 179, 159, 0.28) 0%, transparent 55%),
+    radial-gradient(90% 70% at 0% 100%, rgba(20, 179, 159, 0.18) 0%, transparent 60%),
+    linear-gradient(140deg, #0f3d3e 0%, #0b2f31 55%, #082426 100%);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #dfe5ea; /* shows around the phone column on desktop */
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  /* Quicksand's 400 is thinner than MoMo's body text; 500 + a touch of tracking matches better */
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+button {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: default;
+}
+
+.momo-gradient {
+  background: linear-gradient(180deg, #00547b 0%, #003a5c 100%);
+}
